@@ -1,4 +1,4 @@
-# iTranslate Video Translator (Chrome Extension)
+# izTranslate Video Translator (Chrome Extension)
 
 This repo contains the Chrome extension source.
 
