@@ -10,3 +10,5 @@ This repo contains the Chrome extension source.
 
 ## Notes
 - Chrome extensions cannot run on `chrome://` pages or the Chrome Web Store.
+
+- Chrome Web Store extension - coming soon!
