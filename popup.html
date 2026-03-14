@@ -1,0 +1,246 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Video Translator</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #0b1220;
+        --card: rgba(255, 255, 255, 0.06);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.7);
+        --border: rgba(255, 255, 255, 0.12);
+        --accent: #5dd6c0;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font: 13px/1.35 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        width: 340px;
+        background: var(--bg);
+        color: var(--text);
+        padding: 12px;
+      }
+      h1 {
+        font-size: 14px;
+        margin: 0 0 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .pill {
+        font-size: 11px;
+        padding: 4px 8px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        color: var(--muted);
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 10px;
+        margin: 10px 0;
+      }
+      label { display: block; margin: 10px 0 6px; color: var(--muted); }
+      input[type="text"], input[type="password"], select {
+        width: 100%;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(0,0,0,0.25);
+        color: var(--text);
+        padding: 8px 10px;
+        outline: none;
+      }
+      .row { display: flex; gap: 8px; }
+      .row > * { flex: 1; }
+      .toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: rgba(0,0,0,0.18);
+      }
+      button {
+        width: 100%;
+        border: 0;
+        border-radius: 10px;
+        padding: 9px 10px;
+        background: var(--accent);
+        color: #081018;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      button.secondary {
+        background: rgba(255,255,255,0.10);
+        color: var(--text);
+        border: 1px solid var(--border);
+        font-weight: 600;
+      }
+      .hint { color: var(--muted); font-size: 11px; margin-top: 6px; }
+      .error { color: #ffb4b4; font-size: 12px; margin-top: 8px; white-space: pre-wrap; }
+      .footer { margin-top: 8px; color: var(--muted); font-size: 11px; }
+    </style>
+  </head>
+  <body>
+    <h1>
+      Video Translator
+      <span id="sitePill" class="pill">Site: …</span>
+    </h1>
+
+    <div id="viewStart" class="card" style="display:none;">
+      <div style="font-weight: 800; font-size: 13px;">Start</div>
+      <div class="hint">This extension reads the captions/subtitles you already turned on in the video player.</div>
+      <div style="height: 10px;"></div>
+      <button id="btnStart">Start setup</button>
+    </div>
+
+    <div id="viewInstructions" class="card" style="display:none;">
+      <div style="font-weight: 800; font-size: 13px;">Instructions</div>
+      <div class="hint">Scroll to the bottom, then press OK.</div>
+      <div id="instructionsScroll" style="margin-top:10px; max-height: 220px; overflow:auto; padding-right: 6px;">
+        <div style="line-height: 1.5;">
+          <div style="margin: 0 0 8px;"><strong>1)</strong> Open a video page (YouTube works best).</div>
+          <div style="margin: 0 0 8px;"><strong>2)</strong> Turn on captions/subtitles (CC button).</div>
+          <div style="margin: 0 0 8px;">
+            <strong>3)</strong> If you want another language on YouTube:
+            <div class="hint" style="margin-top:4px;">Gear ⚙️ → Subtitles/CC → Auto-translate → pick a language.</div>
+          </div>
+          <div style="margin: 0 0 8px;"><strong>4)</strong> Click this extension icon → press <strong>Read</strong>.</div>
+          <div style="margin: 0 0 8px;"><strong>5)</strong> Press <strong>Stop</strong> to stop talking.</div>
+          <div style="margin: 0 0 8px;">
+            <strong>Note:</strong> This extension does not use external translation APIs. It reads whatever captions are shown
+            on-screen (including auto-translated captions).
+          </div>
+          <div style="margin: 0 0 8px;">
+            <strong>If nothing happens:</strong> captions might be off, the site might not show captions, or you may be on a
+            restricted page (like <code>chrome://</code> pages).
+          </div>
+        </div>
+      </div>
+      <div style="height: 10px;"></div>
+      <div class="row">
+        <button id="btnOk" disabled>OK (scroll down)</button>
+        <button id="btnSkip" class="secondary">Skip</button>
+      </div>
+    </div>
+
+    <div id="viewControls" style="display:none;">
+      <div id="donateCard" class="card" style="display:none;">
+        <div style="font-weight: 800; font-size: 13px;">Please donate</div>
+        <div class="hint">Support our nonprofit organization so we can keep improving captions + sync.</div>
+        <div style="height: 10px;"></div>
+        <div class="row">
+          <button id="donateYes">Donate</button>
+          <button id="donateNo" class="secondary">Maybe later</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="toggle">
+          <div>
+            <div style="font-weight: 700;">Enable sidebar</div>
+            <div class="hint">Shows the right-side bar on pages you visit.</div>
+          </div>
+          <input id="enabledGlobal" type="checkbox" />
+        </div>
+
+        <div style="height: 10px;"></div>
+
+        <div class="toggle">
+          <div>
+            <div style="font-weight: 700;">Speak captions</div>
+            <div class="hint">Reads captions out loud.</div>
+          </div>
+          <input id="speak" type="checkbox" />
+        </div>
+
+        <div style="height: 10px;"></div>
+
+        <div class="toggle">
+          <div>
+            <div style="font-weight: 700;">Audio mix</div>
+            <div class="hint">Drag to choose how much you hear the original audio vs the spoken translation.</div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px; min-width: 140px;">
+            <input id="audioMix" type="range" min="0" max="1" step="0.01" value="1" style="width: 140px;" />
+            <div class="hint" style="display:flex; width: 140px; justify-content: space-between; margin:0;">
+              <span>Original</span><span>Spanish</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="height: 10px;"></div>
+
+        <div class="toggle">
+          <div>
+            <div style="font-weight: 700;">Try to stay in sync</div>
+            <div class="hint">Speeds up/slows down speech (best with caption tracks).</div>
+          </div>
+          <input id="syncSpeech" type="checkbox" />
+        </div>
+
+        <div style="height: 10px;"></div>
+
+        <div class="toggle">
+          <div>
+            <div style="font-weight: 700;">Auto pause when behind</div>
+            <div class="hint">Pauses briefly only if speech lags behind the captions.</div>
+          </div>
+          <input id="slowVideo" type="checkbox" />
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="row">
+          <div>
+            <label for="targetLang">Voice language</label>
+            <select id="targetLang"></select>
+          </div>
+          <div>
+            <label for="mode">Mode</label>
+            <select id="mode">
+              <option value="captions">Captions-only (recommended)</option>
+            </select>
+          </div>
+        </div>
+        <label for="speechSpeed">Speech speed</label>
+        <input id="speechSpeed" type="range" min="0.4" max="3.5" step="0.05" value="1.0" />
+        <div class="hint" style="display:flex; justify-content: space-between; margin-top:6px;">
+          <span>Very slow</span>
+          <span>Very fast</span>
+        </div>
+        <div class="hint" style="margin-top:6px;">
+          Selected: <span id="speechSpeedVal">1.00×</span>
+        </div>
+        <div class="hint">
+          No external translation APIs are used. If you want translated captions, enable the site's own caption translation
+          (e.g. YouTube: CC → Settings → Subtitles/CC → Auto-translate).
+        </div>
+      </div>
+
+      <div class="row">
+        <button id="btnRead">Read</button>
+        <button id="btnStop" class="secondary">Stop</button>
+      </div>
+
+      <div style="height: 10px;"></div>
+
+      <div class="row">
+        <button id="btnOpen">Open/Focus sidebar</button>
+        <button id="btnSave" class="secondary">Save</button>
+      </div>
+
+      <div class="footer">Tip: Turn on captions/subtitles on the video for best results.</div>
+    </div>
+
+    <div id="err" class="error" style="display:none;"></div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
