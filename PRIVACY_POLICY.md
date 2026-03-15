@@ -28,4 +28,4 @@ Remote code
 - The extension does not load or execute remote code (no external scripts, no eval).
 
 Contact
-- Add a support email address here before publishing to the Chrome Web Store.
+- Support email: isaaczh2020@gmail.com
