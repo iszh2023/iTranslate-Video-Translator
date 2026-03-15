@@ -2,6 +2,16 @@
 
 const lastVoiceByLang = new Map();
 
+async function ensureInjected(tabId) {
+  if (!tabId) return false;
+  try {
+    await chrome.scripting.executeScript({ target: { tabId }, files: ["content.js"] });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function normalizeLangTag(tag) {
   const t = String(tag || "").trim();
   if (!t) return "";
@@ -81,6 +91,12 @@ function pickBestVoice(voices, lang) {
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (!msg || typeof msg !== "object") return;
+
+  if (msg.type === "VT_BG_INJECT") {
+    const tabId = Number(msg.tabId);
+    void ensureInjected(tabId).then((ok) => sendResponse?.({ ok }));
+    return true;
+  }
 
   if (msg.type === "VT_OPEN_URL") {
     const url = String(msg.url || "");

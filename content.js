@@ -2,6 +2,8 @@
 
 (() => {
   if (window.top !== window) return; // only top frame
+  if (window.__iTranslateInjected) return;
+  window.__iTranslateInjected = true;
 
   const DEFAULTS = {
     enabledGlobal: true,

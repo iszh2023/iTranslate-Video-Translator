@@ -99,6 +99,7 @@ function fillLangSelect() {
 
 async function pushSettingsToTab(tabId, settings) {
   try {
+    await chrome.runtime.sendMessage({ type: "VT_BG_INJECT", tabId });
     await chrome.tabs.sendMessage(tabId, { type: "VT_SETTINGS", settings });
   } catch {
     // Content script may not be injected on restricted pages.
@@ -107,6 +108,7 @@ async function pushSettingsToTab(tabId, settings) {
 
 async function pushControlToTab(tabId, action) {
   try {
+    await chrome.runtime.sendMessage({ type: "VT_BG_INJECT", tabId });
     await chrome.tabs.sendMessage(tabId, { type: "VT_CONTROL", action });
   } catch {
     // ignore
@@ -115,6 +117,7 @@ async function pushControlToTab(tabId, action) {
 
 async function pushNavToTab(tabId, view) {
   try {
+    await chrome.runtime.sendMessage({ type: "VT_BG_INJECT", tabId });
     await chrome.tabs.sendMessage(tabId, { type: "VT_NAV", view });
   } catch {
     // ignore
@@ -131,6 +134,7 @@ async function openDonateUrl() {
 
 async function openSidebar(tabId) {
   try {
+    await chrome.runtime.sendMessage({ type: "VT_BG_INJECT", tabId });
     await chrome.tabs.sendMessage(tabId, { type: "VT_OPEN" });
   } catch {
     // ignore
